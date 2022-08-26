@@ -1,0 +1,45 @@
+services:
+  website:
+    build: website
+    volumes:
+      - website:/website
+  wiki:
+    build: wiki
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Amsterdam
+    volumes:
+      - ./wiki/config:/config
+    restart: unless-stopped
+  bitwarden:
+    image: vaultwarden/server
+    volumes:
+      - bitwarden:/data
+    environment:
+      SIGNUPS_ALLOWED: 'false'
+      SENDS_ALLOWED: 'false'
+    restart: unless-stopped
+  nginx:
+    build: nginx
+    volumes:
+      - website:/website:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/http/futurefactory:/futurefactory:ro
+      - certbot_www:/var/www/certbot:ro
+      - certbot_ssl:/etc/letsencrypt:ro
+    ports:
+      - 80:80
+      - 443:443
+    restart: unless-stopped
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_ssl:/etc/letsencrypt
+
+volumes:
+  bitwarden:
+  website:
+  certbot_www:
+  certbot_ssl:
