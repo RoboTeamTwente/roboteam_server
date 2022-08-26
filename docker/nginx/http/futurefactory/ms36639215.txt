@@ -1,0 +1,5 @@
+﻿{
+  "Description": "Controlebestand voor domeineigendom voor Microsoft 365 - plaats in de hoofdmap van de website",
+  "Domain": "futurefactorytwente.nl",
+  "Id": "cb2924c0-d104-4f18-9b27-c6689818b901"
+}
