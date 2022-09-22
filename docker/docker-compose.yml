@@ -37,7 +37,6 @@ services:
     volumes:
       - certbot_www:/var/www/certbot
       - certbot_ssl:/etc/letsencrypt
-  
 
 volumes:
   bitwarden:
