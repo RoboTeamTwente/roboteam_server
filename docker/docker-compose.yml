@@ -19,7 +19,7 @@ services:
     environment:
       - SIGNUPS_ALLOWED=false
       - SENDS_ALLOWED=false
-      - ADMIN_TOKEN=tomiseenheld123456789
+      - ADMIN_TOKEN=${BITWARDEN_ADMIN_TOKEN}
       #- DISABLE_ADMIN_TOKEN=true
     restart: unless-stopped
   nginx:
