@@ -1,0 +1,99 @@
+services:
+  tdp:
+    image: roboteamtwente/chatrttetdp:latest
+    environment:
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+  website:
+    build: website
+    volumes:
+      - website:/website
+  wiki:
+    build: wiki
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Amsterdam
+    volumes:
+      - ./wiki/config:/config
+    restart: unless-stopped
+  bitwarden:
+    image: vaultwarden/server
+    volumes:
+      - bitwarden:/data
+    environment:
+      - SIGNUPS_ALLOWED=false
+      - SENDS_ALLOWED=false
+      - ADMIN_TOKEN=${BITWARDEN_ADMIN_TOKEN}
+      #- DISABLE_ADMIN_TOKEN=true
+    restart: unless-stopped
+  nginx:
+    build: nginx
+    volumes:
+      - website:/website:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      # - ./nginx/http/futurefactory:/futurefactory:ro
+      - certbot_www:/var/www/certbot:ro
+      - certbot_ssl:/etc/letsencrypt:ro
+      - future_factory_static:/var/www/future_factory/static:ro
+      - future_factory_static_beta:/var/www/future_factory_beta/static:ro
+      - ./ff_website/media:/var/www/future_factory/media:ro
+      - ./ff_website_beta/media:/var/www/future_factory_beta/media:ro
+    ports:
+      - 80:80
+      - 443:443
+    restart: unless-stopped
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_ssl:/etc/letsencrypt
+
+  # Future Factory Website
+  future_factory_db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+  future_factory_website:
+    build: ff_website
+    volumes:
+      - future_factory_static:/var/www/future_factory/static
+      - ./ff_website/media:/var/www/future_factory/media
+    environment:
+      - DEBUG=FALSE
+      - BETA=FALSE
+      - DJANGO_KEY=${DJANGO_SECRET_KEY}
+      - POSTGRES_NAME=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+    depends_on:
+      - future_factory_db
+    command: bash setup.sh
+  future_factory_website_beta:
+    build: ff_website_beta
+    volumes:
+      - future_factory_static_beta:/var/www/future_factory_beta/static
+      - ./ff_website_beta/media:/var/www/future_factory_beta/media
+    environment:
+      - BETA=TRUE
+      - DJANGO_KEY=${DJANGO_SECRET_KEY}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+    #  - POSTGRES_NAME=${POSTGRES_DB}
+    #  - POSTGRES_USER=${POSTGRES_USER}
+    #  - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    # depends_on:
+    #  - future_factory_db
+    command: bash setup.sh
+
+volumes:
+  bitwarden:
+  website:
+  certbot_www:
+  certbot_ssl:
+  future_factory_static:
+  future_factory_static_beta:
