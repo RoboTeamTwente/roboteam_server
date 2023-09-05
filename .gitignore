@@ -3,5 +3,6 @@ docker/nginx/conf.d/*.key
 docker/nginx/http/roboteamtwente
 docker/wiki/config
 docker/wiki/template
+docker/.env
 /docker/ff_website/media/
 .idea
